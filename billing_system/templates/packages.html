@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Packages{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>WiFi Packages</h2>
+  <p>All available hotspot pricing plans</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Active Packages ({{ plans|length }})</h3>
+  </div>
+  <div class="packages-grid">
+    {% for plan in plans %}
+    <div class="package-card">
+      <div class="price">
+        KES {{ plan.tiers[0].rate | int if plan.tiers else '—' }}
+      </div>
+      <div class="duration">{{ plan.description or '—' }}</div>
+      <div class="name">{{ plan.name }}</div>
+      <div style="margin-top:12px;">
+        {% if plan.is_active %}
+          <span class="badge badge-green">Active</span>
+        {% else %}
+          <span class="badge badge-gray">Inactive</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Packages Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Packages Detail</h3>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Package Name</th>
+        <th>Price (KES)</th>
+        <th>Duration</th>
+        <th>Type</th>
+        <th>Currency</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for plan in plans %}
+      <tr>
+        <td><strong>{{ plan.name }}</strong></td>
+        <td>KES {{ plan.tiers[0].rate | int if plan.tiers else '—' }}</td>
+        <td>{{ plan.description or '—' }}</td>
+        <td><span class="badge badge-blue">{{ plan.tariff_type.value }}</span></td>
+        <td>{{ plan.currency }}</td>
+        <td>
+          {% if plan.is_active %}
+            <span class="badge badge-green">Active</span>
+          {% else %}
+            <span class="badge badge-gray">Inactive</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

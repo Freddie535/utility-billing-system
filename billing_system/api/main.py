@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import List
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from billing_system.db.database import get_db_dep, init_db
 from billing_system.models.models import (
@@ -15,8 +16,12 @@ from billing_system.schemas.schemas import (
     GenerateInvoiceRequest, InvoiceOut,
     PaymentCreate, PaymentOut,
 )
+from billing_system.api.frontend import router as frontend_router
 
 app = FastAPI(title="Utility Billing System", version="1.0.0")
+
+app.mount("/static", StaticFiles(directory="billing_system/static"), name="static")
+app.include_router(frontend_router)
 
 @app.on_event("startup")
 def on_startup():

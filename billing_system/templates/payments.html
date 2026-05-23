@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Payments{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Payments</h2>
+  <p>Record and track M-Pesa and other payments</p>
+</div>
+
+{% if message %}
+<div class="alert alert-success">✅ {{ message }}</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-error">❌ {{ error }}</div>
+{% endif %}
+
+<!-- Record Payment Form -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <h3>Record New Payment</h3>
+  </div>
+  <form method="POST" action="/payments/new">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Select Invoice</label>
+        <select name="invoice_id" required>
+          <option value="">-- Choose invoice --</option>
+          {% for inv in issued_invoices %}
+          <option value="{{ inv.id }}"
+            {% if selected_invoice_id == inv.id %}selected{% endif %}>
+            {{ inv.invoice_number }} — {{ inv.customer_name }}
+            (KES {{ "%.2f"|format(inv.total_due) }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Amount (KES)</label>
+        <input type="number" name="amount" step="0.01" min="1" placeholder="58.00" required>
+      </div>
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select name="method" required>
+          <option value="mpesa">M-Pesa</option>
+          <option value="bank_transfer">Bank Transfer</option>
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reference / Transaction Code</label>
+        <input type="text" name="reference" placeholder="e.g. QHG7X4K21P">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💳 Record Payment</button>
+    </div>
+  </form>
+</div>
+
+<!-- Payments Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>All Payments ({{ payments|length }})</h3>
+  </div>
+  {% if payments %}
+  <table>
+    <thead>
+      <tr>
+        <th>Reference</th>
+        <th>Customer</th>
+        <th>Invoice #</th>
+        <th>Amount</th>
+        <th>Method</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td><strong>{{ p.reference or '—' }}</strong></td>
+        <td>{{ p.customer_name }}</td>
+        <td>{{ p.invoice_number }}</td>
+        <td>KES {{ "%.2f"|format(p.amount) }}</td>
+        <td>
+          {% if p.method.value == 'mpesa' %}
+            <span class="badge badge-green">M-Pesa</span>
+          {% elif p.method.value == 'bank_transfer' %}
+            <span class="badge badge-blue">Bank</span>
+          {% elif p.method.value == 'cash' %}
+            <span class="badge badge-yellow">Cash</span>
+          {% else %}
+            <span class="badge badge-gray">{{ p.method.value }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if p.status.value == 'confirmed' %}
+            <span class="badge badge-green">Confirmed</span>
+          {% elif p.status.value == 'pending' %}
+            <span class="badge badge-yellow">Pending</span>
+          {% elif p.status.value == 'failed' %}
+            <span class="badge badge-red">Failed</span>
+          {% else %}
+            <span class="badge badge-gray">{{ p.status.value }}</span>
+          {% endif %}
+        </td>
+        <td>{{ p.paid_at.strftime('%d %b %Y %H:%M') if p.paid_at else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <p>No payments recorded yet</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

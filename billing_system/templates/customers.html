@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Customers</h2>
+  <p>Manage all registered customer accounts</p>
+</div>
+
+{% if message %}
+<div class="alert alert-success">✅ {{ message }}</div>
+{% endif %}
+{% if error %}
+<div class="alert alert-error">❌ {{ error }}</div>
+{% endif %}
+
+<!-- Add Customer Form -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <h3>Add New Customer</h3>
+  </div>
+  <form method="POST" action="/customers/new">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Account Number</label>
+        <input type="text" name="account_number" placeholder="ACC-00001" required>
+      </div>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="full_name" placeholder="John Kamau" required>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="text" name="phone" placeholder="+254712345678">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="john@example.com">
+      </div>
+      <div class="form-group full">
+        <label>Address</label>
+        <input type="text" name="address" placeholder="Nairobi, Kenya">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">+ Add Customer</button>
+    </div>
+  </form>
+</div>
+
+<!-- Customers Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>All Customers ({{ customers|length }})</h3>
+  </div>
+  {% if customers %}
+  <table>
+    <thead>
+      <tr>
+        <th>Account</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Credit Balance</th>
+        <th>Status</th>
+        <th>Joined</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in customers %}
+      <tr>
+        <td><strong>{{ c.account_number }}</strong></td>
+        <td>{{ c.full_name }}</td>
+        <td>{{ c.phone or '—' }}</td>
+        <td>{{ c.email or '—' }}</td>
+        <td>KES {{ "%.2f"|format(c.credit_balance) }}</td>
+        <td>
+          {% if c.status.value == 'active' %}
+            <span class="badge badge-green">Active</span>
+          {% elif c.status.value == 'suspended' %}
+            <span class="badge badge-yellow">Suspended</span>
+          {% else %}
+            <span class="badge badge-red">Closed</span>
+          {% endif %}
+        </td>
+        <td>{{ c.created_at.strftime('%d %b %Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <p>No customers yet — add one above</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
