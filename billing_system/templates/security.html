@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Security — HotspotPro</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>⚡ HotspotPro</h1>
+    <p>Billing Dashboard</p>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/" class="nav-item"><span class="icon">📊</span> Dashboard</a>
+    <a href="/customers" class="nav-item"><span class="icon">👥</span> Customers</a>
+    <a href="/packages" class="nav-item"><span class="icon">📦</span> Packages</a>
+    <a href="/invoices" class="nav-item"><span class="icon">🧾</span> Invoices</a>
+    <a href="/payments" class="nav-item"><span class="icon">💳</span> Payments</a>
+    <a href="/auth/security" class="nav-item active"><span class="icon">🛡️</span> Security</a>
+    <a href="/auth/logout" class="nav-item" style="margin-top:auto;color:var(--danger)">
+      <span class="icon">🚪</span> Logout
+    </a>
+  </nav>
+</aside>
+<main class="main">
+  <div class="page-header">
+    <h2>🛡️ Security Center</h2>
+    <p>Monitor threats, manage access, audit logs</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card red">
+      <div class="stat-label">Banned IPs</div>
+      <div class="stat-value">{{ banned_ips|length }}</div>
+      <div class="stat-sub">Active bans</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">Failed Logins</div>
+      <div class="stat-value">{{ failed_logins|length }}</div>
+      <div class="stat-sub">Recent attempts</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Audit Logs</div>
+      <div class="stat-value">{{ audit_logs|length }}</div>
+      <div class="stat-sub">Recent actions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Users</div>
+      <div class="stat-value">{{ users|length }}</div>
+      <div class="stat-sub">System users</div>
+    </div>
+  </div>
+
+  <!-- Ban IP Form -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>🚫 Ban an IP Address</h3></div>
+    <form method="POST" action="/auth/ban-ip">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>IP Address</label>
+          <input type="text" name="ip_address" placeholder="e.g. 192.168.1.100" required>
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <input type="text" name="reason" placeholder="e.g. Suspicious activity">
+        </div>
+        <div class="form-group">
+          <label>Ban Type</label>
+          <select name="permanent">
+            <option value="false">Temporary (7 days)</option>
+            <option value="true">Permanent</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" style="background:var(--danger);">
+          🚫 Ban IP
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Banned IPs -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>🚫 Banned IPs</h3></div>
+    {% if banned_ips %}
+    <table>
+      <thead>
+        <tr>
+          <th>IP Address</th>
+          <th>Reason</th>
+          <th>Type</th>
+          <th>Expires</th>
+          <th>Banned At</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ban in banned_ips %}
+        <tr>
+          <td><strong>{{ ban.ip_address }}</strong></td>
+          <td>{{ ban.reason or '—' }}</td>
+          <td>
+            {% if ban.is_permanent %}
+              <span class="badge badge-red">Permanent</span>
+            {% else %}
+              <span class="badge badge-yellow">Temporary</span>
+            {% endif %}
+          </td>
+          <td>{{ ban.expires_at.strftime('%d %b %Y %H:%M') if ban.expires_at else '—' }}</td>
+          <td>{{ ban.created_at.strftime('%d %b %Y') }}</td>
+          <td>
+            <form method="POST" action="/auth/unban/{{ ban.id }}" style="display:inline;">
+              <button type="submit" class="btn btn-secondary"
+                      style="padding:4px 10px;font-size:12px;color:var(--accent);">
+                Unban
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><p>No banned IPs</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Failed Logins -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>⚠️ Recent Failed Logins</h3></div>
+    {% if failed_logins %}
+    <table>
+      <thead>
+        <tr><th>IP Address</th><th>Username tried</th><th>Time</th></tr>
+      </thead>
+      <tbody>
+        {% for attempt in failed_logins %}
+        <tr>
+          <td><strong>{{ attempt.ip_address }}</strong></td>
+          <td>{{ attempt.username or '—' }}</td>
+          <td>{{ attempt.created_at.strftime('%d %b %Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><p>No failed logins</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Audit Logs -->
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-header"><h3>📋 Audit Log</h3></div>
+    {% if audit_logs %}
+    <table>
+      <thead>
+        <tr><th>Action</th><th>IP</th><th>Status</th><th>Time</th></tr>
+      </thead>
+      <tbody>
+        {% for log in audit_logs %}
+        <tr>
+          <td><strong>{{ log.action }}</strong>
+            {% if log.details %}
+            <br><small style="color:var(--muted)">{{ log.details }}</small>
+            {% endif %}
+          </td>
+          <td>{{ log.ip_address or '—' }}</td>
+          <td>
+            {% if log.status == 'success' %}
+              <span class="badge badge-green">Success</span>
+            {% elif log.status == 'failed' %}
+              <span class="badge badge-red">Failed</span>
+            {% elif log.status == 'blocked' %}
+              <span class="badge badge-red">Blocked</span>
+            {% elif log.status == 'security' %}
+              <span class="badge badge-yellow">Security</span>
+            {% else %}
+              <span class="badge badge-gray">{{ log.status }}</span>
+            {% endif %}
+          </td>
+          <td>{{ log.created_at.strftime('%d %b %Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><p>No audit logs yet</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Users -->
+  <div class="card">
+    <div class="card-header"><h3>👥 System Users</h3></div>
+    {% if users %}
+    <table>
+      <thead>
+        <tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>{{ u.email }}</td>
+          <td><span class="badge badge-blue">{{ u.role.value }}</span></td>
+          <td>
+            {% if u.is_locked %}
+              <span class="badge badge-red">Locked</span>
+            {% elif u.is_active %}
+              <span class="badge badge-green">Active</span>
+            {% else %}
+              <span class="badge badge-gray">Inactive</span>
+            {% endif %}
+          </td>
+          <td>{{ u.last_login.strftime('%d %b %Y %H:%M') if u.last_login else 'Never' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><p>No users yet</p></div>
+    {% endif %}
+  </div>
+
+</main>
+</body>
+</html>

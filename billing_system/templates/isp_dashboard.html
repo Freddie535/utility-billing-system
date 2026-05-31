@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ org.company_name }} — HotspotPro</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    :root {
+      --accent: {{ org.theme_primary }};
+      --accent2: {{ org.theme_secondary }};
+      --bg: {{ org.theme_bg }};
+    }
+    .hex-bg { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; overflow:hidden; opacity:0.04; }
+    .hex-item { position:absolute; clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); background:var(--accent); animation:hexFloat 8s ease-in-out infinite; }
+    @keyframes hexFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-20px) rotate(15deg)} }
+    body { position:relative; }
+    .main { position:relative; z-index:1; }
+    .sidebar { position:relative; z-index:1; }
+    .org-badge { background:rgba(0,229,160,0.1); border:1px solid var(--accent); border-radius:8px; padding:8px 12px; margin:12px; font-size:12px; color:var(--accent); }
+    .org-badge strong { display:block; font-size:14px; }
+    .plan-badge { display:inline-block; background:var(--accent); color:#0f1117; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; text-transform:uppercase; margin-top:4px; }
+    .pkg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; padding:20px; }
+    .pkg-item { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:16px; transition:border-color 0.15s; }
+    .pkg-item:hover { border-color:var(--accent); }
+    .pkg-price { font-family:var(--font-display); font-size:28px; font-weight:800; color:var(--accent); }
+    .pkg-name { font-size:13px; font-weight:600; margin-top:8px; }
+    .pkg-meta { font-size:11px; color:var(--muted); margin-top:4px; }
+    .trial-banner { background:linear-gradient(135deg,rgba(255,181,71,0.15),rgba(255,181,71,0.05)); border:1px solid rgba(255,181,71,0.3); border-radius:10px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:12px; }
+    .trial-banner p { font-size:13px; color:var(--warning); margin:0; }
+    .settings-link { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:8px; color:var(--muted); text-decoration:none; font-size:14px; font-weight:500; transition:all 0.15s; margin-bottom:2px; }
+    .settings-link:hover { background:var(--surface2); color:var(--accent); }
+  </style>
+</head>
+<body>
+<!-- Animated hexagon background -->
+<div class="hex-bg" id="hex-bg"></div>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1 style="color:var(--accent);">⚡ {{ org.company_name }}</h1>
+    <p>Powered by HotspotPro</p>
+  </div>
+
+  <div class="org-badge">
+    <strong>{{ user.full_name }}</strong>
+    <span class="plan-badge">{{ org.subscription_plan.value }}</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main</div>
+    <a href="/isp/dashboard" class="nav-item active"><span class="icon">📊</span> Dashboard</a>
+    <a href="/customers" class="nav-item"><span class="icon">👥</span> Customers</a>
+    <a href="/invoices" class="nav-item"><span class="icon">🧾</span> Invoices</a>
+    <a href="/payments" class="nav-item"><span class="icon">💳</span> Payments</a>
+    <div class="nav-label" style="margin-top:12px;">Settings</div>
+    <a href="/isp/setup" class="nav-item"><span class="icon">🎨</span> Appearance</a>
+    <a href="/isp/packages" class="nav-item"><span class="icon">📦</span> Packages</a>
+    <a href="/isp/profile" class="nav-item"><span class="icon">🏢</span> Company Profile</a>
+    <a href="/auth/security" class="nav-item"><span class="icon">🛡️</span> Security</a>
+    <a href="/auth/logout" class="nav-item" style="color:var(--danger);margin-top:12px;">
+      <span class="icon">🚪</span> Logout
+    </a>
+  </nav>
+</aside>
+
+<main class="main">
+  <div class="page-header">
+    <h2>Welcome back, {{ user.full_name.split()[0] }}! 👋</h2>
+    <p>{{ org.company_name }} — Managing your hotspot business</p>
+  </div>
+
+  <!-- Trial banner -->
+  {% if org.trial_ends_at %}
+  <div class="trial-banner">
+    <span style="font-size:24px;">⏰</span>
+    <p>Your <strong>30-day free trial</strong> ends on
+      <strong>{{ org.trial_ends_at.strftime('%d %b %Y') }}</strong>.
+      Upgrade to keep your account active.
+    </p>
+  </div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Customers</div>
+      <div class="stat-value">{{ total_customers }}</div>
+      <div class="stat-sub">of {{ org.max_customers }} allowed</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Total Invoices</div>
+      <div class="stat-value">{{ total_invoices }}</div>
+      <div class="stat-sub">All time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Revenue Collected</div>
+      <div class="stat-value">KES {{ total_revenue }}</div>
+      <div class="stat-sub">Confirmed payments</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-label">WiFi Packages</div>
+      <div class="stat-value">{{ packages|length }}</div>
+      <div class="stat-sub">of 12 maximum</div>
+    </div>
+  </div>
+
+  <!-- Packages -->
+  <div class="card">
+    <div class="card-header">
+      <h3>📦 Your WiFi Packages</h3>
+      <a href="/isp/setup" class="btn btn-secondary">Manage</a>
+    </div>
+    {% if packages %}
+    <div class="pkg-grid">
+      {% for pkg in packages %}
+      <div class="pkg-item">
+        <div class="pkg-price">KES {{ pkg.price|int }}</div>
+        <div class="pkg-name">{{ pkg.name }}</div>
+        <div class="pkg-meta">
+          {{ pkg.duration_hours }}hrs
+          {% if pkg.data_limit_mb %} · {{ pkg.data_limit_mb }}MB{% else %} · Unlimited{% endif %}
+          {% if pkg.speed_mbps %} · {{ pkg.speed_mbps }}Mbps{% endif %}
+          {% if pkg.is_streaming %} · 📺{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <p>No packages yet — <a href="/isp/setup" style="color:var(--accent)">add your WiFi packages</a></p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card">
+    <div class="card-header"><h3>⚡ Quick Actions</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:20px;">
+      <a href="/customers" class="btn btn-secondary" style="justify-content:center;padding:16px;">
+        👥 Add Customer
+      </a>
+      <a href="/invoices" class="btn btn-secondary" style="justify-content:center;padding:16px;">
+        🧾 View Invoices
+      </a>
+      <a href="/payments" class="btn btn-secondary" style="justify-content:center;padding:16px;">
+        💳 Record Payment
+      </a>
+      <a href="/isp/setup" class="btn btn-secondary" style="justify-content:center;padding:16px;">
+        🎨 Change Theme
+      </a>
+    </div>
+  </div>
+
+  <!-- Company Info -->
+  <div class="card">
+    <div class="card-header">
+      <h3>🏢 Company Info</h3>
+      <a href="/isp/setup" class="btn btn-secondary">Edit</a>
+    </div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Company</div>
+        <div style="font-size:15px;font-weight:600;margin-top:4px;">{{ org.company_name }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Helpline</div>
+        <div style="font-size:15px;font-weight:600;margin-top:4px;">{{ org.helpline or '—' }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Support Email</div>
+        <div style="font-size:15px;font-weight:600;margin-top:4px;">{{ org.email }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Plan</div>
+        <div style="font-size:15px;font-weight:600;margin-top:4px;">
+          <span class="plan-badge">{{ org.subscription_plan.value }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// Generate animated hexagons matching theme
+const bg = document.getElementById('hex-bg');
+const primary = '{{ org.theme_primary }}';
+const secondary = '{{ org.theme_secondary }}';
+const colors = [primary, secondary];
+for(let i = 0; i < 20; i++) {
+  const hex = document.createElement('div');
+  const size = 40 + Math.random() * 80;
+  hex.className = 'hex-item';
+  hex.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    background:${colors[i%2]};
+    animation-delay:${Math.random()*5}s;
+    animation-duration:${6+Math.random()*6}s;
+  `;
+  bg.appendChild(hex);
+}
+</script>
+</body>
+</html>

@@ -13,8 +13,8 @@
   --warning: #ffb547;
   --text: #f0f2ff;
   --muted: #6b7280;
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Arial Black', 'Arial Bold', Gadget, sans-serif;
+  --font-body: 'Arial', sans-serif;
 }
 
 body {

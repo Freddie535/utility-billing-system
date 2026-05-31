@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Setup Your Account — HotspotPro</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body { background:var(--bg); padding:20px; }
+    .setup-container { max-width:900px; margin:0 auto; }
+    .setup-header { text-align:center; padding:40px 0 32px; }
+    .setup-header h1 { font-family:var(--font-display); font-size:32px; font-weight:800; color:var(--accent); }
+    .setup-header p { color:var(--muted); margin-top:8px; }
+    .steps-bar { display:flex; justify-content:center; gap:0; margin-bottom:40px; }
+    .step-item { display:flex; align-items:center; gap:8px; }
+    .step-circle { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; border:2px solid var(--border); color:var(--muted); }
+    .step-circle.active { background:var(--accent); color:#0f1117; border-color:var(--accent); }
+    .step-circle.done { background:var(--surface2); color:var(--accent); border-color:var(--accent); }
+    .step-label { font-size:12px; color:var(--muted); }
+    .step-line { width:60px; height:2px; background:var(--border); margin:0 8px; }
+    .step-line.done { background:var(--accent); }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:24px; overflow:hidden; }
+    .card-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .card-header h3 { font-family:var(--font-display); font-size:16px; font-weight:700; }
+    .card-body { padding:24px; }
+
+    /* Theme Customizer */
+    .theme-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; margin-bottom:24px; }
+    .theme-option { background:var(--surface2); border:2px solid var(--border); border-radius:12px; padding:12px; cursor:pointer; text-align:center; transition:all 0.15s; position:relative; overflow:hidden; }
+    .theme-option:hover,.theme-option.selected { border-color:var(--accent); transform:scale(1.02); }
+    .theme-option.selected::after { content:'✓'; position:absolute; top:6px; right:8px; color:var(--accent); font-weight:bold; font-size:14px; }
+    .theme-preview { width:100%; height:70px; border-radius:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .theme-name { font-size:11px; font-weight:600; color:var(--text); }
+    .hex-pattern { position:absolute; inset:0; display:flex; flex-wrap:wrap; gap:2px; padding:4px; }
+    .hex-small { width:16px; height:16px; clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); flex-shrink:0; }
+
+    /* Packages */
+    .packages-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+    .pkg-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:16px; position:relative; }
+    .pkg-card .pkg-remove { position:absolute; top:8px; right:8px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; }
+    .pkg-card .pkg-remove:hover { color:var(--danger); }
+    .pkg-name { font-weight:600; font-size:14px; margin-bottom:4px; }
+    .pkg-price { font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--accent); }
+    .pkg-details { font-size:12px; color:var(--muted); margin-top:4px; }
+    .add-pkg-btn { background:var(--surface2); border:2px dashed var(--border); border-radius:10px; padding:16px; text-align:center; cursor:pointer; color:var(--muted); font-size:13px; transition:all 0.15s; }
+    .add-pkg-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+    /* Modal */
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; }
+    .modal.open { display:flex; }
+    .modal-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px; width:100%; max-width:440px; }
+    .modal-title { font-family:var(--font-display); font-size:18px; font-weight:700; margin-bottom:20px; }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+
+    .color-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+    .color-row label { font-size:12px; color:var(--muted); width:100px; }
+    .color-row input[type=color] { width:48px; height:32px; border:none; border-radius:6px; cursor:pointer; background:none; }
+
+    .btn-save { background:var(--accent); color:#0f1117; border:none; padding:12px 28px; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; font-family:var(--font-body); }
+    .btn-save:hover { background:#00c98a; }
+    .btn-skip { background:var(--surface2); color:var(--text); border:1px solid var(--border); padding:12px 20px; border-radius:8px; font-size:14px; cursor:pointer; font-family:var(--font-body); text-decoration:none; display:inline-block; }
+  </style>
+</head>
+<body>
+<div class="setup-container">
+  <div class="setup-header">
+    <h1>⚡ Set Up Your Account</h1>
+    <p>Just a few steps and you're ready to manage your hotspot business</p>
+  </div>
+
+  <!-- Steps bar -->
+  <div class="steps-bar">
+    <div class="step-item">
+      <div class="step-circle active">1</div>
+      <div class="step-label">Profile</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-circle">2</div>
+      <div class="step-label">Packages</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-circle">3</div>
+      <div class="step-label">Theme</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item">
+      <div class="step-circle">4</div>
+      <div class="step-label">Done</div>
+    </div>
+  </div>
+
+  <form method="POST" action="/isp/setup/save">
+
+    <!-- Profile -->
+    <div class="card">
+      <div class="card-header">
+        <span>🏢</span><h3>Company Profile</h3>
+      </div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="form-group">
+            <label>Company Name</label>
+            <input type="text" name="company_name" value="{{ org.company_name if org else '' }}" required>
+          </div>
+          <div class="form-group">
+            <label>Website (optional)</label>
+            <input type="text" name="website" placeholder="https://yourcompany.co.ke" value="{{ org.website if org else '' }}">
+          </div>
+          <div class="form-group">
+            <label>Support Email</label>
+            <input type="email" name="email" value="{{ org.email if org else '' }}" required>
+          </div>
+          <div class="form-group">
+            <label>Helpline Number</label>
+            <input type="text" name="helpline" placeholder="+254712345678" value="{{ org.helpline if org else '' }}">
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label>Address</label>
+            <input type="text" name="address" placeholder="Nairobi, Kenya" value="{{ org.address if org else '' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Packages -->
+    <div class="card">
+      <div class="card-header">
+        <span>📦</span>
+        <h3>WiFi Packages</h3>
+        <span style="margin-left:auto;font-size:12px;color:var(--muted);" id="pkg-count">0 / 12</span>
+      </div>
+      <div class="card-body">
+        <div class="packages-list" id="packages-list"></div>
+        <div class="add-pkg-btn" id="add-pkg-btn" onclick="openModal()" style="margin-top:12px;">
+          + Add Package
+        </div>
+        <input type="hidden" name="packages" id="packages-data" value="[]">
+      </div>
+    </div>
+
+    <!-- Theme -->
+    <div class="card">
+      <div class="card-header">
+        <span>🎨</span><h3>Dashboard Theme</h3>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+          Choose a preset theme or customize your own colors.
+        </p>
+
+        <!-- Preset themes -->
+        <div class="theme-grid" id="theme-grid">
+
+          <div class="theme-option selected" data-theme="hexagon_teal" onclick="selectTheme(this,'#00e5a0','#5b6af0','#0f1117')">
+            <div class="theme-preview" style="background:#0f1117;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#00e5a0;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Teal Dark</div>
+          </div>
+
+          <div class="theme-option" data-theme="hexagon_purple" onclick="selectTheme(this,'#5b6af0','#00e5a0','#0a0a1a')">
+            <div class="theme-preview" style="background:#0a0a1a;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#5b6af0;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Purple Night</div>
+          </div>
+
+          <div class="theme-option" data-theme="hexagon_fire" onclick="selectTheme(this,'#ff4d6d','#ffb547','#1a0a0a')">
+            <div class="theme-preview" style="background:#1a0a0a;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#ff4d6d;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Fire Red</div>
+          </div>
+
+          <div class="theme-option" data-theme="hexagon_gold" onclick="selectTheme(this,'#ffb547','#ff4d6d','#1a1200')">
+            <div class="theme-preview" style="background:#1a1200;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#ffb547;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Golden</div>
+          </div>
+
+          <div class="theme-option" data-theme="hexagon_ocean" onclick="selectTheme(this,'#00b4d8','#0077b6','#0a1628')">
+            <div class="theme-preview" style="background:#0a1628;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#00b4d8;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Ocean Blue</div>
+          </div>
+
+          <div class="theme-option" data-theme="hexagon_forest" onclick="selectTheme(this,'#52b788','#1b4332','#0a1a0f')">
+            <div class="theme-preview" style="background:#0a1a0f;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#52b788;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Forest Green</div>
+          </div>
+
+          <div class="theme-option" data-theme="hexagon_rose" onclick="selectTheme(this,'#f72585','#7209b7','#1a0a1a')">
+            <div class="theme-preview" style="background:#1a0a1a;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#f72585;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Rose Pink</div>
+          </div>
+
+          <div class="theme-option" data-theme="hexagon_ice" onclick="selectTheme(this,'#caf0f8','#90e0ef','#0a1520')">
+            <div class="theme-preview" style="background:#0a1520;">
+              <div class="hex-pattern">
+                {% for i in range(12) %}<div class="hex-small" style="background:#caf0f8;opacity:{{ 0.3 + (loop.index * 0.06) }};"></div>{% endfor %}
+              </div>
+            </div>
+            <div class="theme-name">Ice White</div>
+          </div>
+
+        </div>
+
+        <!-- Custom colors -->
+        <div style="background:var(--surface2);border-radius:8px;padding:16px;margin-top:8px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Or customize your own colors:</div>
+          <div class="color-row">
+            <label>Primary Color</label>
+            <input type="color" id="color-primary" value="#00e5a0" oninput="updateCustomTheme()">
+            <span id="color-primary-hex" style="font-size:12px;color:var(--muted);">#00e5a0</span>
+          </div>
+          <div class="color-row">
+            <label>Secondary Color</label>
+            <input type="color" id="color-secondary" value="#5b6af0" oninput="updateCustomTheme()">
+            <span id="color-secondary-hex" style="font-size:12px;color:var(--muted);">#5b6af0</span>
+          </div>
+          <div class="color-row">
+            <label>Background</label>
+            <input type="color" id="color-bg" value="#0f1117" oninput="updateCustomTheme()">
+            <span id="color-bg-hex" style="font-size:12px;color:var(--muted);">#0f1117</span>
+          </div>
+        </div>
+
+        <input type="hidden" name="theme_primary" id="theme_primary" value="#00e5a0">
+        <input type="hidden" name="theme_secondary" id="theme_secondary" value="#5b6af0">
+        <input type="hidden" name="theme_bg" id="theme_bg" value="#0f1117">
+        <input type="hidden" name="theme_pattern" id="theme_pattern" value="hexagon_teal">
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-bottom:40px;">
+      <a href="/" class="btn-skip">Skip for now</a>
+      <button type="submit" class="btn-save">💾 Save & Go to Dashboard</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Add Package Modal -->
+<div class="modal" id="pkg-modal">
+  <div class="modal-box">
+    <div class="modal-title">📦 Add WiFi Package</div>
+    <div class="form-group">
+      <label>Package Name</label>
+      <input type="text" id="pkg-name" placeholder="e.g. 1 Day Browsing">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label>Price (KES)</label>
+        <input type="number" id="pkg-price" placeholder="50" min="1">
+      </div>
+      <div class="form-group">
+        <label>Duration (hours)</label>
+        <input type="number" id="pkg-hours" placeholder="24" min="1">
+      </div>
+      <div class="form-group">
+        <label>Data Limit (MB)</label>
+        <input type="number" id="pkg-mb" placeholder="Leave empty = unlimited">
+      </div>
+      <div class="form-group">
+        <label>Speed (Mbps)</label>
+        <input type="number" id="pkg-speed" placeholder="Leave empty = full speed">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <input type="text" id="pkg-desc" placeholder="e.g. Perfect for social media">
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <input type="checkbox" id="pkg-streaming" style="width:auto;">
+      <label style="text-transform:none;font-size:14px;color:var(--text);">Includes streaming & downloading</label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-skip" onclick="closeModal()">Cancel</button>
+      <button type="button" class="btn-save" onclick="addPackage()">Add Package</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let packages = [];
+
+function openModal() {
+  if (packages.length >= 12) {
+    alert('Maximum 12 packages allowed.');
+    return;
+  }
+  document.getElementById('pkg-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('pkg-modal').classList.remove('open');
+  clearModal();
+}
+
+function clearModal() {
+  ['pkg-name','pkg-price','pkg-hours','pkg-mb','pkg-speed','pkg-desc'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('pkg-streaming').checked = false;
+}
+
+function addPackage() {
+  const name  = document.getElementById('pkg-name').value.trim();
+  const price = document.getElementById('pkg-price').value;
+  const hours = document.getElementById('pkg-hours').value;
+  if (!name || !price || !hours) {
+    alert('Please fill in Name, Price and Duration.');
+    return;
+  }
+  const pkg = {
+    name, price: parseFloat(price), hours: parseInt(hours),
+    mb: document.getElementById('pkg-mb').value || null,
+    speed: document.getElementById('pkg-speed').value || null,
+    desc: document.getElementById('pkg-desc').value,
+    streaming: document.getElementById('pkg-streaming').checked,
+  };
+  packages.push(pkg);
+  renderPackages();
+  closeModal();
+}
+
+function removePackage(index) {
+  packages.splice(index, 1);
+  renderPackages();
+}
+
+function renderPackages() {
+  const list = document.getElementById('packages-list');
+  document.getElementById('pkg-count').textContent = packages.length + ' / 12';
+  document.getElementById('packages-data').value = JSON.stringify(packages);
+  list.innerHTML = packages.map((p, i) => `
+    <div class="pkg-card">
+      <button type="button" class="pkg-remove" onclick="removePackage(${i})">×</button>
+      <div class="pkg-name">${p.name}</div>
+      <div class="pkg-price">KES ${p.price}</div>
+      <div class="pkg-details">
+        ${p.hours}hrs
+        ${p.mb ? ' · ' + p.mb + 'MB' : ' · Unlimited data'}
+        ${p.speed ? ' · ' + p.speed + 'Mbps' : ''}
+        ${p.streaming ? ' · 📺 Streaming' : ''}
+      </div>
+    </div>
+  `).join('');
+  const addBtn = document.getElementById('add-pkg-btn');
+  addBtn.style.display = packages.length >= 12 ? 'none' : 'block';
+}
+
+function selectTheme(el, primary, secondary, bg) {
+  document.querySelectorAll('.theme-option').forEach(t => t.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('theme_primary').value = primary;
+  document.getElementById('theme_secondary').value = secondary;
+  document.getElementById('theme_bg').value = bg;
+  document.getElementById('theme_pattern').value = el.dataset.theme;
+  document.getElementById('color-primary').value = primary;
+  document.getElementById('color-secondary').value = secondary;
+  document.getElementById('color-bg').value = bg;
+}
+
+function updateCustomTheme() {
+  const p = document.getElementById('color-primary').value;
+  const s = document.getElementById('color-secondary').value;
+  const b = document.getElementById('color-bg').value;
+  document.getElementById('color-primary-hex').textContent = p;
+  document.getElementById('color-secondary-hex').textContent = s;
+  document.getElementById('color-bg-hex').textContent = b;
+  document.getElementById('theme_primary').value = p;
+  document.getElementById('theme_secondary').value = s;
+  document.getElementById('theme_bg').value = b;
+  document.getElementById('theme_pattern').value = 'custom';
+  document.querySelectorAll('.theme-option').forEach(t => t.classList.remove('selected'));
+}
+
+renderPackages();
+</script>
+</body>
+</html>

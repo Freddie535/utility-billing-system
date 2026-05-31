@@ -1,7 +1,8 @@
 from decimal import Decimal
 from typing import List
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from billing_system.db.database import get_db_dep, init_db
 from billing_system.models.models import (
@@ -17,19 +18,91 @@ from billing_system.schemas.schemas import (
     PaymentCreate, PaymentOut,
 )
 from billing_system.api.frontend import router as frontend_router
+from billing_system.security.routes import router as auth_router
+from billing_system.security.isp_routes import router as isp_router
+from billing_system.security.auth import get_current_user, create_user
+from billing_system.security.models import UserRole
 
-app = FastAPI(title="Utility Billing System", version="1.0.0")
+app = FastAPI(title="HotspotPro Billing System", version="2.0.0")
 
 app.mount("/static", StaticFiles(directory="billing_system/static"), name="static")
+app.include_router(auth_router)
+app.include_router(isp_router)
 app.include_router(frontend_router)
+
 
 @app.on_event("startup")
 def on_startup():
     init_db()
+    # Create security tables
+    from billing_system.models.models import Base
+    from billing_system.security.models import User, AuditLog, BannedIP, LoginAttempt
+    from billing_system.security.isp_models import Organization, ISPPackage, EmailVerification, ISPInvoice
+    from billing_system.db.database import engine
+    Base.metadata.create_all(bind=engine)
+    # Create default admin if no users exist
+    from billing_system.db.database import SessionLocal
+    db = SessionLocal()
+    try:
+        existing = db.query(User).first()
+        if not existing:
+            user, msg = create_user(
+                db,
+                username="admin",
+                email="admin@hotspotpro.com",
+                full_name="System Administrator",
+                password="Admin@1234!",
+                role=UserRole.SUPER_ADMIN,
+            )
+            if user:
+                db.commit()
+                print("✅ Default admin created: admin / Admin@1234!")
+            else:
+                print(f"Admin creation failed: {msg}")
+        else:
+            print(f"✅ Admin already exists")
+    except Exception as e:
+        print(f"Startup error: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+
+# ── Protect all frontend routes ───────────────
+
+def require_login(request: Request, db: Session = Depends(get_db_dep)):
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+    return get_current_user(db, token)
+
+
+@app.middleware("http")
+async def auth_middleware(request, call_next):
+    # Public routes that don't need login
+    public_routes = [
+        "/auth/login",
+        "/auth/logout",
+        "/static/",
+        "/health",
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+    ]
+    path = request.url.path
+    is_public = any(path.startswith(r) for r in public_routes)
+    if not is_public:
+        token = request.cookies.get("access_token")
+        if not token:
+            return RedirectResponse("/auth/login", status_code=303)
+    response = await call_next(request)
+    return response
+
 
 @app.get("/health", tags=["system"])
 def health():
     return {"status": "ok"}
+
 
 @app.post("/customers", response_model=CustomerOut, status_code=201, tags=["customers"])
 def create_customer(body: CustomerCreate, db: Session = Depends(get_db_dep)):
@@ -99,7 +172,6 @@ def assign_reading_to_cycle(reading_id: str, cycle_id: str, db: Session = Depend
     if not rec:
         raise HTTPException(404, "Reading not found")
     rec.billing_cycle_id = cycle_id
-    db.flush()
     return rec
 
 @app.post("/customers/{customer_id}/cycles", response_model=BillingCycleOut, status_code=201, tags=["billing"])

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Email Verified — HotspotPro</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg); }
+    .box { max-width:480px; width:100%; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:48px; text-align:center; }
+    .icon { font-size:64px; margin-bottom:24px; }
+    .checkmark { width:80px; height:80px; background:rgba(0,229,160,0.1); border:2px solid var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 24px; font-size:36px; }
+    h2 { font-family:var(--font-display); font-size:24px; font-weight:800; margin-bottom:12px; color:var(--accent); }
+    p { color:var(--muted); line-height:1.6; margin-bottom:16px; }
+    .btn-primary { display:inline-block; background:var(--accent); color:#0f1117; padding:14px 32px; border-radius:8px; text-decoration:none; font-weight:700; font-size:15px; margin-top:8px; }
+    .confetti { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+  </style>
+</head>
+<body>
+  <div class="box" style="position:relative;z-index:1;">
+    <div class="checkmark">✅</div>
+    <h2>Email Verified!</h2>
+    <p>Welcome to HotspotPro, <strong>{{ company_name }}</strong>!</p>
+    <p>Your account is now active. Let's set up your ISP profile — add your packages, customize your dashboard, and start managing your hotspot business.</p>
+    <a href="/isp/setup" class="btn-primary">🚀 Set Up My Account</a>
+  </div>
+  <script>
+    // Simple confetti effect
+    const colors = ['#00e5a0','#5b6af0','#ffb547','#ff4d6d'];
+    for(let i=0;i<60;i++){
+      const el=document.createElement('div');
+      el.style.cssText=`position:fixed;width:8px;height:8px;background:${colors[i%4]};top:-10px;left:${Math.random()*100}%;border-radius:50%;animation:fall ${2+Math.random()*3}s linear ${Math.random()*2}s infinite;z-index:0;`;
+      document.body.appendChild(el);
+    }
+    const style=document.createElement('style');
+    style.textContent='@keyframes fall{0%{top:-10px;transform:rotate(0deg)}100%{top:100vh;transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

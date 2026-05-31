@@ -23,24 +23,29 @@ def dashboard(request: Request, db: Session = Depends(get_db_dep)):
     confirmed_payments = db.query(Payment).filter_by(status=PaymentStatus.CONFIRMED).all()
     total_revenue = sum(p.amount for p in confirmed_payments)
     recent_customers = db.query(Customer).order_by(Customer.created_at.desc()).limit(5).all()
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "active": "dashboard",
-        "total_customers": total_customers,
-        "total_invoices": total_invoices,
-        "total_revenue": f"{total_revenue:.2f}",
-        "unpaid_invoices": unpaid_invoices,
-        "recent_customers": recent_customers,
-    })
+    from fastapi.responses import HTMLResponse
+    from jinja2 import Environment, FileSystemLoader
+    env = Environment(loader=FileSystemLoader("billing_system/templates"))
+    t = env.get_template("dashboard.html")
+    html = t.render(
+        request=request,
+        active="dashboard",
+        total_customers=total_customers,
+        total_invoices=total_invoices,
+        total_revenue=f"{total_revenue:.2f}",
+        unpaid_invoices=unpaid_invoices,
+        recent_customers=recent_customers,
+    )
+    return HTMLResponse(html)
 
 @router.get("/customers", response_class=HTMLResponse)
 def customers_page(request: Request, db: Session = Depends(get_db_dep)):
     customers = db.query(Customer).order_by(Customer.created_at.desc()).all()
-    return templates.TemplateResponse("customers.html", {
-        "request": request,
-        "active": "customers",
-        "customers": customers,
-    })
+    from jinja2 import Environment, FileSystemLoader
+    from fastapi.responses import HTMLResponse
+    env = Environment(loader=FileSystemLoader("billing_system/templates"))
+    html = env.get_template("customers.html").render(request=request, active="customers", customers=customers)
+    return HTMLResponse(html)
 
 @router.post("/customers/new")
 def add_customer(
@@ -62,29 +67,27 @@ def add_customer(
             address=address or None,
         )
         customers = db.query(Customer).order_by(Customer.created_at.desc()).all()
-        return templates.TemplateResponse("customers.html", {
-            "request": request,
-            "active": "customers",
-            "customers": customers,
-            "message": f"Customer {full_name} added successfully!",
-        })
+        from jinja2 import Environment, FileSystemLoader
+        from fastapi.responses import HTMLResponse
+        env = Environment(loader=FileSystemLoader("billing_system/templates"))
+        html = env.get_template("customers.html").render(request=request, active="customers", customers=customers, message=f"Customer {full_name} added successfully!")
+        return HTMLResponse(html)
     except Exception as e:
         customers = db.query(Customer).order_by(Customer.created_at.desc()).all()
-        return templates.TemplateResponse("customers.html", {
-            "request": request,
-            "active": "customers",
-            "customers": customers,
-            "error": str(e),
-        })
+        from jinja2 import Environment, FileSystemLoader
+        from fastapi.responses import HTMLResponse
+        env = Environment(loader=FileSystemLoader("billing_system/templates"))
+        html = env.get_template("customers.html").render(request=request, active="customers", customers=customers, error=str(e))
+        return HTMLResponse(html)
 
 @router.get("/packages", response_class=HTMLResponse)
 def packages_page(request: Request, db: Session = Depends(get_db_dep)):
     plans = db.query(TariffPlan).filter_by(is_active=True).all()
-    return templates.TemplateResponse("packages.html", {
-        "request": request,
-        "active": "packages",
-        "plans": plans,
-    })
+    from jinja2 import Environment, FileSystemLoader
+    from fastapi.responses import HTMLResponse
+    env = Environment(loader=FileSystemLoader("billing_system/templates"))
+    html = env.get_template("packages.html").render(request=request, active="packages", plans=plans)
+    return HTMLResponse(html)
 
 @router.get("/invoices", response_class=HTMLResponse)
 def invoices_page(request: Request, db: Session = Depends(get_db_dep)):
@@ -102,11 +105,11 @@ def invoices_page(request: Request, db: Session = Depends(get_db_dep)):
             "due_date": inv.due_date,
             "created_at": inv.created_at,
         })
-    return templates.TemplateResponse("invoices.html", {
-        "request": request,
-        "active": "invoices",
-        "invoices": invoices,
-    })
+    from jinja2 import Environment, FileSystemLoader
+    from fastapi.responses import HTMLResponse
+    env = Environment(loader=FileSystemLoader("billing_system/templates"))
+    html = env.get_template("invoices.html").render(request=request, active="invoices", invoices=invoices)
+    return HTMLResponse(html)
 
 @router.post("/invoices/{invoice_id}/issue")
 def issue_invoice_page(invoice_id: str, db: Session = Depends(get_db_dep)):
@@ -144,13 +147,11 @@ def payments_page(
             "customer_name": c.full_name if c else "—",
             "total_due": inv.total_due,
         })
-    return templates.TemplateResponse("payments.html", {
-        "request": request,
-        "active": "payments",
-        "payments": payments,
-        "issued_invoices": issued_invoices,
-        "selected_invoice_id": invoice_id,
-    })
+    from jinja2 import Environment, FileSystemLoader
+    from fastapi.responses import HTMLResponse
+    env = Environment(loader=FileSystemLoader("billing_system/templates"))
+    html = env.get_template("payments.html").render(request=request, active="payments", payments=payments, issued_invoices=issued_invoices, selected_invoice_id=invoice_id)
+    return HTMLResponse(html)
 
 @router.post("/payments/new")
 def record_payment_page(

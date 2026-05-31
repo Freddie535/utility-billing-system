@@ -1,83 +1,66 @@
-{% extends "base.html" %}
-{% block title %}Invoices{% endblock %}
-
-{% block content %}
-<div class="page-header">
-  <h2>Invoices</h2>
-  <p>All generated bills and their status</p>
-</div>
-
-{% if message %}
-<div class="alert alert-success">✅ {{ message }}</div>
-{% endif %}
-{% if error %}
-<div class="alert alert-error">❌ {{ error }}</div>
-{% endif %}
-
-<div class="card">
-  <div class="card-header">
-    <h3>All Invoices ({{ invoices|length }})</h3>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoices — HotspotPro</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>⚡ HotspotPro</h1>
+    <p>Billing Dashboard</p>
   </div>
-  {% if invoices %}
-  <table>
-    <thead>
-      <tr>
-        <th>Invoice #</th>
-        <th>Customer</th>
-        <th>Subtotal</th>
-        <th>VAT</th>
-        <th>Total Due</th>
-        <th>Status</th>
-        <th>Due Date</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for inv in invoices %}
-      <tr>
-        <td><strong>{{ inv.invoice_number }}</strong></td>
-        <td>{{ inv.customer_name }}</td>
-        <td>KES {{ "%.2f"|format(inv.subtotal) }}</td>
-        <td>KES {{ "%.2f"|format(inv.tax_amount) }}</td>
-        <td><strong>KES {{ "%.2f"|format(inv.total_due) }}</strong></td>
-        <td>
-          {% if inv.status.value == 'paid' %}
-            <span class="badge badge-green">Paid</span>
-          {% elif inv.status.value == 'issued' %}
-            <span class="badge badge-blue">Issued</span>
-          {% elif inv.status.value == 'draft' %}
-            <span class="badge badge-gray">Draft</span>
-          {% elif inv.status.value == 'overdue' %}
-            <span class="badge badge-red">Overdue</span>
-          {% elif inv.status.value == 'void' %}
-            <span class="badge badge-red">Void</span>
-          {% endif %}
-        </td>
-        <td>{{ inv.due_date.strftime('%d %b %Y') if inv.due_date else '—' }}</td>
-        <td>
-          {% if inv.status.value == 'draft' %}
+  <nav class="sidebar-nav">
+    <a href="/" class="nav-item"><span class="icon">📊</span> Dashboard</a>
+    <a href="/customers" class="nav-item"><span class="icon">👥</span> Customers</a>
+    <a href="/packages" class="nav-item"><span class="icon">📦</span> Packages</a>
+    <a href="/invoices" class="nav-item active"><span class="icon">🧾</span> Invoices</a>
+    <a href="/payments" class="nav-item"><span class="icon">💳</span> Payments</a>
+  </nav>
+</aside>
+<main class="main">
+  <div class="page-header">
+    <h2>Invoices</h2>
+    <p>All generated bills</p>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>All Invoices ({{ invoices|length }})</h3></div>
+    {% if invoices %}
+    <table>
+      <thead>
+        <tr><th>Invoice #</th><th>Customer</th><th>Total Due</th><th>Status</th><th>Due Date</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td><strong>{{ inv.invoice_number }}</strong></td>
+          <td>{{ inv.customer_name }}</td>
+          <td>KES {{ "%.2f"|format(inv.total_due) }}</td>
+          <td>
+            {% if inv.status.value == 'paid' %}<span class="badge badge-green">Paid</span>
+            {% elif inv.status.value == 'issued' %}<span class="badge badge-blue">Issued</span>
+            {% elif inv.status.value == 'draft' %}<span class="badge badge-gray">Draft</span>
+            {% else %}<span class="badge badge-red">{{ inv.status.value }}</span>{% endif %}
+          </td>
+          <td>{{ inv.due_date.strftime('%d %b %Y') if inv.due_date else '—' }}</td>
+          <td>
+            {% if inv.status.value == 'draft' %}
             <form method="POST" action="/invoices/{{ inv.id }}/issue" style="display:inline;">
-              <button type="submit" class="btn btn-primary" style="padding:4px 10px;font-size:12px;">
-                Issue
-              </button>
+              <button type="submit" class="btn btn-primary" style="padding:4px 10px;font-size:12px;">Issue</button>
             </form>
-          {% elif inv.status.value == 'issued' %}
-            <a href="/payments?invoice_id={{ inv.id }}" class="btn btn-secondary"
-               style="padding:4px 10px;font-size:12px;">
-              Pay
-            </a>
-          {% else %}
-            —
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <div class="empty">
-    <p>No invoices yet</p>
+            {% elif inv.status.value == 'issued' %}
+            <a href="/payments?invoice_id={{ inv.id }}" class="btn btn-secondary" style="padding:4px 10px;font-size:12px;">Pay</a>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty"><p>No invoices yet</p></div>
+    {% endif %}
   </div>
-  {% endif %}
-</div>
-{% endblock %}
+</main>
+</body>
+</html>

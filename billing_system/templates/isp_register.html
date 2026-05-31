@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Your ISP — HotspotPro</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg); padding:20px; }
+    .register-box { width:100%; max-width:520px; background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+    .register-header { background:linear-gradient(135deg, #0f1117 0%, #1a1d27 100%); padding:32px; text-align:center; border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+    .hexagons { position:absolute; top:0; left:0; right:0; bottom:0; opacity:0.15; }
+    .hex { position:absolute; width:40px; height:40px; background:var(--accent); clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); animation:float 6s ease-in-out infinite; }
+    .hex:nth-child(1) { top:10%; left:10%; animation-delay:0s; background:#00e5a0; }
+    .hex:nth-child(2) { top:20%; right:15%; animation-delay:1s; background:#5b6af0; width:25px; height:25px; }
+    .hex:nth-child(3) { bottom:15%; left:20%; animation-delay:2s; background:#ffb547; width:30px; height:30px; }
+    .hex:nth-child(4) { bottom:10%; right:10%; animation-delay:0.5s; background:#00e5a0; width:20px; height:20px; }
+    .hex:nth-child(5) { top:50%; left:5%; animation-delay:1.5s; background:#5b6af0; width:15px; height:15px; }
+    @keyframes float { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-10px) rotate(10deg)} }
+    .register-logo { position:relative; z-index:1; }
+    .register-logo h1 { font-family:var(--font-display); font-size:28px; font-weight:800; color:var(--accent); }
+    .register-logo p { color:var(--muted); font-size:13px; margin-top:4px; }
+    .register-body { padding:32px; }
+    .section-title { font-family:var(--font-display); font-size:16px; font-weight:700; margin-bottom:16px; color:var(--accent); display:flex; align-items:center; gap:8px; }
+    .divider { height:1px; background:var(--border); margin:24px 0; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
+    .form-group input, .form-group select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 14px; color:var(--text); font-family:var(--font-body); font-size:14px; transition:border-color 0.15s; }
+    .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--accent); }
+    .password-strength { height:4px; border-radius:2px; margin-top:6px; transition:all 0.3s; background:var(--border); }
+    .strength-weak { background:#ff4d6d; width:33%; }
+    .strength-medium { background:#ffb547; width:66%; }
+    .strength-strong { background:#00e5a0; width:100%; }
+    .strength-text { font-size:11px; margin-top:4px; }
+    .btn-register { width:100%; padding:14px; background:var(--accent); color:#0f1117; border:none; border-radius:8px; font-size:15px; font-weight:700; font-family:var(--font-body); cursor:pointer; transition:background 0.15s; }
+    .btn-register:hover { background:#00c98a; }
+    .error-box { background:rgba(255,77,109,0.1); border:1px solid rgba(255,77,109,0.3); color:var(--danger); padding:12px 16px; border-radius:8px; font-size:13px; margin-bottom:20px; }
+    .login-link { text-align:center; margin-top:16px; font-size:13px; color:var(--muted); }
+    .login-link a { color:var(--accent); text-decoration:none; }
+    .plans { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+    .plan { background:var(--surface2); border:2px solid var(--border); border-radius:8px; padding:12px; text-align:center; cursor:pointer; transition:all 0.15s; }
+    .plan:hover, .plan.selected { border-color:var(--accent); }
+    .plan-name { font-size:12px; font-weight:600; color:var(--text); }
+    .plan-price { font-size:18px; font-weight:800; color:var(--accent); font-family:var(--font-display); }
+    .plan-limit { font-size:10px; color:var(--muted); margin-top:2px; }
+    input[type=radio].plan-radio { display:none; }
+  </style>
+</head>
+<body>
+  <div class="register-box">
+    <div class="register-header">
+      <div class="hexagons">
+        <div class="hex"></div><div class="hex"></div><div class="hex"></div>
+        <div class="hex"></div><div class="hex"></div>
+      </div>
+      <div class="register-logo">
+        <h1>⚡ HotspotPro</h1>
+        <p>Professional WiFi Billing for ISPs</p>
+      </div>
+    </div>
+
+    <div class="register-body">
+      {% if error %}
+      <div class="error-box">❌ {{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/isp/register">
+
+        <!-- Company Info -->
+        <div class="section-title">🏢 Company Information</div>
+        <div class="form-group">
+          <label>Company Name</label>
+          <input type="text" name="company_name" placeholder="e.g. Nairobi Fiber Co" required
+                 value="{{ form.company_name or '' }}">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Support Email</label>
+            <input type="email" name="email" placeholder="support@yourcompany.com" required
+                   value="{{ form.email or '' }}">
+          </div>
+          <div class="form-group">
+            <label>Helpline Number</label>
+            <input type="text" name="helpline" placeholder="+254712345678"
+                   value="{{ form.helpline or '' }}">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Account Info -->
+        <div class="section-title">👤 Account Details</div>
+        <div class="form-group">
+          <label>Your Full Name</label>
+          <input type="text" name="full_name" placeholder="John Kamau" required
+                 value="{{ form.full_name or '' }}">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="johnkamau" required
+                   value="{{ form.username or '' }}">
+          </div>
+          <div class="form-group">
+            <label>Login Email</label>
+            <input type="email" name="login_email" placeholder="john@example.com" required
+                   value="{{ form.login_email or '' }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Min 8 chars, uppercase, number, symbol"
+                 required id="password" oninput="checkStrength(this.value)">
+          <div class="password-strength" id="strength-bar"></div>
+          <div class="strength-text" id="strength-text" style="color:var(--muted)"></div>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" name="confirm_password" placeholder="Re-enter password" required>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Plan Selection -->
+        <div class="section-title">📦 Choose Your Plan</div>
+        <div class="plans">
+          <label class="plan {% if not form.plan or form.plan == 'starter' %}selected{% endif %}">
+            <input type="radio" name="plan" value="starter" class="plan-radio"
+                   {% if not form.plan or form.plan == 'starter' %}checked{% endif %}>
+            <div class="plan-name">Starter</div>
+            <div class="plan-price">1,500</div>
+            <div class="plan-limit">50 customers</div>
+          </label>
+          <label class="plan {% if form.plan == 'growth' %}selected{% endif %}">
+            <input type="radio" name="plan" value="growth" class="plan-radio"
+                   {% if form.plan == 'growth' %}checked{% endif %}>
+            <div class="plan-name">Growth</div>
+            <div class="plan-price">3,500</div>
+            <div class="plan-limit">200 customers</div>
+          </label>
+          <label class="plan {% if form.plan == 'pro' %}selected{% endif %}">
+            <input type="radio" name="plan" value="pro" class="plan-radio"
+                   {% if form.plan == 'pro' %}checked{% endif %}>
+            <div class="plan-name">Pro</div>
+            <div class="plan-price">8,000</div>
+            <div class="plan-limit">Unlimited</div>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-register">🚀 Create My Account</button>
+      </form>
+
+      <div class="login-link">
+        Already have an account? <a href="/auth/login">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkStrength(password) {
+      const bar = document.getElementById('strength-bar');
+      const text = document.getElementById('strength-text');
+      let score = 0;
+      if (password.length >= 8) score++;
+      if (/[A-Z]/.test(password)) score++;
+      if (/[0-9]/.test(password)) score++;
+      if (/[^A-Za-z0-9]/.test(password)) score++;
+      if (score <= 1) {
+        bar.className = 'password-strength strength-weak';
+        text.textContent = 'Weak password';
+        text.style.color = '#ff4d6d';
+      } else if (score <= 2) {
+        bar.className = 'password-strength strength-medium';
+        text.textContent = 'Medium password';
+        text.style.color = '#ffb547';
+      } else {
+        bar.className = 'password-strength strength-strong';
+        text.textContent = 'Strong password ✓';
+        text.style.color = '#00e5a0';
+      }
+    }
+
+    // Plan selection highlight
+    document.querySelectorAll('.plan').forEach(plan => {
+      plan.addEventListener('click', () => {
+        document.querySelectorAll('.plan').forEach(p => p.classList.remove('selected'));
+        plan.classList.add('selected');
+      });
+    });
+  </script>
+</body>
+</html>

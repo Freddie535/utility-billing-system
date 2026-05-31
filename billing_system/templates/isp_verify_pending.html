@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verify Your Email — HotspotPro</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg); }
+    .box { max-width:480px; width:100%; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:48px; text-align:center; }
+    .icon { font-size:64px; margin-bottom:24px; animation:pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+    h2 { font-family:var(--font-display); font-size:24px; font-weight:800; margin-bottom:12px; }
+    p { color:var(--muted); line-height:1.6; margin-bottom:16px; }
+    .email-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 20px; font-size:16px; font-weight:600; color:var(--accent); margin:16px 0; }
+    .btn { display:inline-block; background:var(--surface2); color:var(--text); border:1px solid var(--border); padding:10px 24px; border-radius:8px; text-decoration:none; font-size:14px; margin-top:8px; transition:all 0.15s; }
+    .btn:hover { border-color:var(--accent); color:var(--accent); }
+    .steps { text-align:left; background:var(--surface2); border-radius:8px; padding:16px 20px; margin:20px 0; }
+    .step { display:flex; gap:10px; margin-bottom:8px; font-size:13px; color:var(--muted); }
+    .dot { width:6px; height:6px; background:var(--accent); border-radius:50%; margin-top:6px; flex-shrink:0; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">📧</div>
+    <h2>Check Your Email</h2>
+    <p>We sent a verification link to:</p>
+    <div class="email-box">{{ email }}</div>
+    <div class="steps">
+      <div class="step"><div class="dot"></div> Open your email inbox</div>
+      <div class="step"><div class="dot"></div> Find the email from HotspotPro</div>
+      <div class="step"><div class="dot"></div> Click "Verify Email Address"</div>
+      <div class="step"><div class="dot"></div> You will be redirected to setup your account</div>
+    </div>
+    <p style="font-size:13px;">Link expires in <strong style="color:var(--warning)">24 hours</strong>.<br>Check your spam folder if you don't see it.</p>
+    <a href="/isp/register" class="btn">← Back to Registration</a>
+  </div>
+</body>
+</html>
