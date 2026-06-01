@@ -20,6 +20,7 @@ from billing_system.schemas.schemas import (
 from billing_system.api.frontend import router as frontend_router
 from billing_system.security.routes import router as auth_router
 from billing_system.security.isp_routes import router as isp_router
+from billing_system.services.scheduler import start_scheduler
 from billing_system.security.auth import get_current_user, create_user
 from billing_system.security.models import UserRole
 
@@ -66,6 +67,13 @@ def on_startup():
         db.rollback()
     finally:
         db.close()
+
+    # Start automated billing scheduler
+    try:
+        start_scheduler()
+        print("✅ Automated billing scheduler started")
+    except Exception as e:
+        print(f"Scheduler error: {e}")
 
 
 # ── Protect all frontend routes ───────────────
