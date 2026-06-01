@@ -154,7 +154,7 @@ def authenticate_user(db: Session, username: str,
     If failed: (None, reason)
     """
     user = db.query(User).filter(
-        (User.username == username) | (User.email == username)
+        (User.username == username) | (User.email == username) | (User.email == username.lower().strip())
     ).first()
 
     if not user:

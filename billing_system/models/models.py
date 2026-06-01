@@ -52,6 +52,7 @@ class PaymentStatus(PyEnum):
 class Customer(Base):
     __tablename__ = "customers"
     id             = Column(String(36), primary_key=True, default=_uuid)
+    org_id         = Column(String(36), nullable=True, index=True)
     account_number = Column(String(20), unique=True, nullable=False, index=True)
     full_name      = Column(String(255), nullable=False)
     email          = Column(String(255), unique=True, nullable=True)
@@ -69,6 +70,7 @@ class Customer(Base):
 class Meter(Base):
     __tablename__ = "meters"
     id              = Column(String(36), primary_key=True, default=_uuid)
+    org_id          = Column(String(36), nullable=True, index=True)
     customer_id     = Column(String(36), ForeignKey("customers.id"), nullable=False, index=True)
     serial_number   = Column(String(60), unique=True, nullable=False, index=True)
     unit            = Column(String(20), nullable=False, default="session")
@@ -164,6 +166,7 @@ class BillingCycle(Base):
 class Invoice(Base):
     __tablename__ = "invoices"
     id               = Column(String(36), primary_key=True, default=_uuid)
+    org_id           = Column(String(36), nullable=True, index=True)
     invoice_number   = Column(String(30), unique=True, nullable=False, index=True)
     customer_id      = Column(String(36), ForeignKey("customers.id"), nullable=False, index=True)
     billing_cycle_id = Column(String(36), ForeignKey("billing_cycles.id"), nullable=False)

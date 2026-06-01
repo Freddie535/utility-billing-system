@@ -81,8 +81,13 @@ async def login(
     # Create JWT token
     token = create_access_token({"sub": user.id, "role": user.role.value})
 
-    # Set cookie and redirect to dashboard
-    response = RedirectResponse("/", status_code=303)
+    # Redirect based on role
+    from billing_system.security.models import UserRole
+    if user.role == UserRole.ISP_OWNER:
+        redirect_url = "/isp/dashboard"
+    else:
+        redirect_url = "/"
+    response = RedirectResponse(redirect_url, status_code=303)
     response.set_cookie(
         key="access_token",
         value=token,
